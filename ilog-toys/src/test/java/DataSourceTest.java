@@ -17,13 +17,13 @@ import infra.exception.ExceptionService;
 import br.com.danielferber.ilogtoys.cplex.ConfigurationCplex;
 import br.com.danielferber.ilogtoys.opl.ConfiguracaoOPL;
 import br.com.danielferber.ilogtoys.opl.FacadeOPL;
-import infra.ilog.opl.DataSource;
-import infra.ilog.opl.ProvedorModelo;
 import br.com.danielferber.ilogtoys.dados.DataSourceFile;
 import br.com.danielferber.ilogtoys.dados.DataSourceClasspath;
 import br.com.danielferber.ilogtoys.dados.DataSourceInputStream;
 import br.com.danielferber.ilogtoys.dados.DataSourceString;
 import br.com.danielferber.ilogtoys.modelo.ProvedorModeloString;
+import br.com.danielferber.ilogtoys.opl.DataSource;
+import br.com.danielferber.ilogtoys.opl.ProvedorModelo;
 
 import java.io.File;
 import java.io.InputStream;

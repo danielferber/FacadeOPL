@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.regex.Pattern;
+import org.apache.commons.io.output.WriterOutputStream;
 
 
 /**

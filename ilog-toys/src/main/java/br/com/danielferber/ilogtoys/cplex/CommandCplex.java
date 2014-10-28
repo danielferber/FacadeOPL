@@ -46,7 +46,8 @@ import org.slf4j.Logger;
 /**
  * Solver specific implementation for CPLEX of the {@link SolverCommand}
  * interface. Its main purpose is to offer a uniform and intuitive understanding
- * of the CPLEX solver.
+ * of the CPLEX solver. It hides the complexity from the ILOG API in calling the
+ * CPLEX solver.
  * <p>
  * Performs a typical execution of the CPLEX solver. This execution may be
  * configured through the settings that are passed to the constructor.
@@ -58,15 +59,18 @@ import org.slf4j.Logger;
  *
  * The responsibilities of the class involves:
  * <ul>
- * <li>Adequately address, log and report the possible execution failures.
- * <li>Write execution progress and solver status to the log.
- * <li>Optionally, write solver configuration properties, model, inctx data and
- * solution to the log for future investigation with the IBM ILOG CPLEX Studio.
+ * <li>Log progress, configuration, settings and status.
+ * <li>Export model, data and solution for debugging purposes.
+ * <li>Address expected failures.
  * </ul>
  *
- * TODO: Callback support to allow customizing the behavior of the typical
- * implementation. TODO: Set solver algorithm according to the class that stores
- * the settings (one settings class per algorithm).
+ * TODOs:
+ * <ul>
+ * <li>Callback support to customizie the behavior of the typical
+ * implementation.
+ * <li>Set solver algorithm according to the class that stores the settings (one
+ * settings class per algorithm).
+ * </ul>
  *
  * @author Daniel Felix Ferber
  */
@@ -190,7 +194,7 @@ public class CommandCplex implements SolverCommand {
                      */
                     if (Thread.interrupted()) {
                         loggerExecucao.debug("Solver thread interrupted. Cancel execution.");
-                        CommandCplex.validarEstadoFinalCplex(cplex, loggerExecucao);
+                        CommandCplex.raiseExceptionAfterCplexExecution(cplex, loggerExecucao);
                         break;
                     }
 
@@ -215,26 +219,25 @@ public class CommandCplex implements SolverCommand {
                 } catch (NoSolutionException e) {
                     /* Não haver solução não é considerado uma falha durante a interação. */
                     opI.ctx("reason", e.reason.toString()).ok();
-                    throw e.operation(IterateCplex).data("n", Integer.toString(iterationCounter));
-                } catch (Exception e) {
+                    throw e;
+                } catch (RuntimeException e) {
                     /* Handle any other unforeseen exception. */
                     opI.fail(e);
-                    throw RichRuntimeException.enrich(e, IterateCplex).data(opI.getContext());
+                    throw e;
                 }
             }
 
-            CommandCplex.validarEstadoFinalCplex(this.cplex, loggerExecucao);
+            CommandCplex.raiseExceptionAfterCplexExecution(this.cplex, loggerExecucao);
 
             op.ok();
         } catch (NoSolutionException e) {
             /* Not having a solution was not considered an error for the iteration, but is considered an error
              * for the whole execution. */
             op.ctx("reason", e.reason.toString()).fail(e);
-            throw e.operation(ExecuteCplex);
-        } catch (Exception e) {
+            throw e;
+        } catch (RuntimeException e) {
             /* Handle any other unforeseen exception. */
             op.fail(e);
-            throw RichRuntimeException.enrich(e, ExecuteCplex).data(op.getContext());
         }
     }
 
@@ -320,10 +323,9 @@ public class CommandCplex implements SolverCommand {
     }
 
     /**
-     * Lança {@link MotivoException} se o CPLEX está num estado que proibe nova
-     * execução.
-     *
-     * @param logger
+     * Raises a NoSolutionException if CPLEX execution is not possible. If an
+     * exception is thrown, the solver has already been executed and finished in
+     * a state that does not allow to continue or restart execution.
      */
     protected static void validarEstadoInicialCplex(IloCplex cplex, Logger logger) throws NoSolutionException {
         Argument.notNull(cplex);
@@ -365,18 +367,18 @@ public class CommandCplex implements SolverCommand {
             throw new ImpossibleException(e);
         }
         if (exception != null) {
-            logger.debug("validarEstadoCplex(status={}): invalid, reason={}", exception.reason);
+            logger.debug("validarEstadoCplex(status={}): invalid, reason={}", statusString, exception.reason);
             throw exception;
         }
         logger.debug("validarEstadoCplex(status={}): ok", statusString);
     }
 
     /**
-     * Lança MotivoException se a busca do CPLEX termina em um estado
-     * considerado insucesso. Ou seja, um estado que não permite ler a solução,
-     * se ela parcial ou ótima.
+     * Raises a NoSolutionException if CPLEX execution finishes in a stated
+     * considered unsuccessful. If an exception is thrown, then it is not
+     * possible to read the solution nor check optimalitiy.
      */
-    protected static void validarEstadoFinalCplex(IloCplex cplex, Logger logger) throws NoSolutionException {
+    protected static void raiseExceptionAfterCplexExecution(IloCplex cplex, Logger logger) throws NoSolutionException {
         Argument.notNull(cplex);
         Argument.notNull(logger);
 
@@ -404,9 +406,11 @@ public class CommandCplex implements SolverCommand {
             } else if (IloCplex.Status.Unknown.equals(cplex.getStatus())) {
                 /* Ainda não achou solução, nem sabe se o modelo é viável ou não. */
                 exception = new NoSolutionException(NoSolutionException.Reason.INCOMPLETE);
+
             } else if (IloCplex.Status.Bounded.equals(cplex.getStatus())) {
                 /* Ainda não achou solução, aparentemente o modelo é viável. */
                 exception = new NoSolutionException(NoSolutionException.Reason.INCOMPLETE);
+
             } else if (IloCplex.Status.Optimal.equals(cplex.getStatus())) {
                 /* Encontrou uma solução ótima. */
             } else if (IloCplex.Status.Feasible.equals(cplex.getStatus())) {
@@ -415,15 +419,15 @@ public class CommandCplex implements SolverCommand {
                 throw new ImpossibleConditionException();
             }
         } catch (IloException e) {
+            /* IloCplex.get<*>() is not known to actually throw IloException. */
             throw new ImpossibleException(e);
         }
         if (exception != null) {
-            logger.debug("validarEstadoFinalCplex(status={}): invalid, reason={}", exception.reason);
+            logger.debug("validarEstadoFinalCplex(status={}): invalid, reason={}", statusString, exception.reason);
             throw exception;
         }
         logger.debug("validarEstadoFinalCplex(status={}): ok", statusString);
     }
-    
     protected static final String strPropertyPrintPattern = "  - %s = %s%n";
 
     protected void logSolverProperties() {

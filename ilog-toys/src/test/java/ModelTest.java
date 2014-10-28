@@ -4,8 +4,8 @@ import br.com.danielferber.ilogtoys.cplex.ConfigurationCplex;
 import br.com.danielferber.ilogtoys.opl.ConfiguracaoOPL;
 import br.com.danielferber.ilogtoys.opl.FacadeOPL;
 import br.com.danielferber.ilogtoys.opl.OplModelException;
-import infra.ilog.opl.ProvedorModelo;
 import br.com.danielferber.ilogtoys.modelo.ProvedorModeloString;
+import br.com.danielferber.ilogtoys.opl.ProvedorModelo;
 
 import java.io.File;
 

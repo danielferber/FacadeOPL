@@ -26,7 +26,7 @@ import java.net.URL;
 
 import static infra.exception.Assert.Argument;
 import static infra.exception.Assert.Invariant;
-import sun.misc.IOUtils;
+import org.apache.commons.io.IOUtils;
 
 
 public class ProvedorModeloURL extends AbstractProvedorModelo {

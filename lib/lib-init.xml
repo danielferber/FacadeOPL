@@ -13,6 +13,9 @@
 	    	<get dest="${lib.dir}/Logback-1.1" skipexisting="true" src="http://central.maven.org/maven2/ch/qos/logback/logback-classic/1.1.2/logback-classic-1.1.2.jar" />
     		<get dest="${lib.dir}/Logback-1.1" skipexisting="true" src="http://central.maven.org/maven2/ch/qos/logback/logback-core/1.1.2/logback-core-1.1.2.jar" />
 	    	
+			<mkdir dir="${lib.dir}/CommonsIO-2.4"/>
+	    	<get dest="${lib.dir}/CommonsIO-2.4" skipexisting="true" src="http://central.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar" />
+		
 			<mkdir dir="${lib.dir}/JUnit-4.11" />
 	    	<get dest="${lib.dir}/JUnit-4.11" skipexisting="true" src="http://central.maven.org/maven2/junit/junit/4.11/junit-4.11.jar" />
 	    	<get dest="${lib.dir}/JUnit-4.11" skipexisting="true" src="http://central.maven.org/maven2/junit/junit/4.11/junit-4.11.jar" />

@@ -17,10 +17,10 @@ import infra.exception.ExceptionService;
 import br.com.danielferber.ilogtoys.cplex.ConfigurationCplex;
 import br.com.danielferber.ilogtoys.opl.ConfiguracaoOPL;
 import br.com.danielferber.ilogtoys.opl.FacadeOPL;
-import infra.ilog.opl.ProvedorModelo;
 import br.com.danielferber.ilogtoys.modelo.ProvedorModeloArquivo;
 import br.com.danielferber.ilogtoys.modelo.ProvedorModeloClasspath;
 import br.com.danielferber.ilogtoys.modelo.ProvedorModeloString;
+import br.com.danielferber.ilogtoys.opl.ProvedorModelo;
 
 import java.io.File;
 
